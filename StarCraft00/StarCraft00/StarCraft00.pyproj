@@ -22,7 +22,16 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CodeTestPolymorphism.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Global.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="StarCraft00.py" />
+    <Compile Include="UnitBase.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
