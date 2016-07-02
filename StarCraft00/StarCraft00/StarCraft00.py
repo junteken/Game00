@@ -2,6 +2,11 @@ import pygame,sys, Global, UnitBase
 from pygame.locals import *
 from Global import *
 
+
+rrr= UnitBase.ResourceExtractor()
+rrr.GetSpriteInfoList('protoss_a.txt')
+rrr.PrintList();
+
 zealot= UnitBase.Zealot()
 Unit_group= pygame.sprite.RenderPlain(zealot.draw())
 
