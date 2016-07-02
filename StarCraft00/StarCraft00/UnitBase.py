@@ -80,14 +80,14 @@ class ResourceExtractor:
 
         for line in file:
             linestrlist=line.split(' ')
-            if(unitname == linestrlist[0][:-4]):
+            if(unitname == self.GetUnitName(linestrlist[0])):
                 #기존꺼와 같은 경우 만들어놓은 list에 추가한다.  
                 templist.append(pygame.Rect(int(linestrlist[-4]), int(linestrlist[-3]), int(linestrlist[-2]), int(linestrlist[-1])))
 
             else:
                 #새로운 unit이 발견됨
                 self.entirelist.append(templist)
-                unitname= linestrlist[0][:-4]
+                unitname= self.GetUnitName(linestrlist[0])
                 templist=list()
                 templist.append(unitname)
     
