@@ -62,6 +62,7 @@ class ResourceExtractor:
 
     def __init__(self):        
         self.entirelist=[] #entirelist 구조 : {'unitname', Rect[0], Rect[1], Rect[2], ...Rect[N]}
+        #self.GetSpriteInfoList()
 
     def GetUnitName(self, name):
         i=0
@@ -90,6 +91,15 @@ class ResourceExtractor:
                 unitname= self.GetUnitName(linestrlist[0])
                 templist=list()
                 templist.append(unitname)
+
+        return self.entirelist
+
+    def GetSpriteInfo(self, unitname):
+        for ll in self.entirelist:
+            #if(ll[0].find(unitname)):
+            if(ll[0].find(unitname)):
+                return ll
+        
     
     def PrintList(self):
         for ll in self.entirelist:
