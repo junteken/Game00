@@ -20,3 +20,14 @@ animals = [Cat('Missy'),
 
 for animal in animals:
     print('anima name '+animal.name+'animal talk'+animal.talk())
+
+
+
+class ResourceExtractor:
+    """ResourceExtractor class"""
+    def draw(self):
+        print('I am ResourceExtractor class')
+
+    def GetSpriteList(name):
+
+            
