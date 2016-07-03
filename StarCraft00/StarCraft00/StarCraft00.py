@@ -3,12 +3,6 @@ from pygame.locals import *
 from Global import *
 
 
-rrr= UnitBase.ResourceExtractor()
-rrr.GetSpriteInfoList('protoss_a.txt')
-rrr.PrintList();
-arbiter_sprite=rrr.GetSpriteInfo('arbiter')
-print(arbiter_sprite)
-
 zealot= UnitBase.Zealot()
 Unit_group= pygame.sprite.RenderPlain(zealot.draw())
 

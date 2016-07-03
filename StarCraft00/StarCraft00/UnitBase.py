@@ -1,9 +1,14 @@
 import Global, pygame, math
 
 class UnitSprite(pygame.sprite.Sprite):    
-    def __init__(self,image,position):
+    def __init__(self,image,spriteinfo):
         pygame.sprite.Sprite.__init__(self)
+        self.spriteinfoList= spriteinfo
+        self.spritename=spriteinfo[0]
+        self.currentFrame=1 #list의 1번부터 Rect객체이므로
         self.src_image=pygame.image.load(image)
+        self.image= self.src_image.subsurface(spriteinfo[self.currentFrame]).convert()
+        self.position= Global.gScreen.get_rect().center
         #self.src_image.set_colorkey(pygame.Color(72,72,88,0))
         #self.rgb=self.src_image.get_at((0,0))
         #self.position=position
@@ -12,7 +17,10 @@ class UnitSprite(pygame.sprite.Sprite):
     def update(self,deltat):
         # SIMULATION
         print("Update is called")
-        self.image= self.src_image.subsurface(pygame.Rect(0,320,128,128)).convert()
+        self.currentFrame+=1
+        if(self.currentFrame >= len(self.spriteinfoList) ):
+            self.currentFrame=1
+        self.image= self.src_image.subsurface(self.spriteinfoList[self.currentFrame]).convert()
         self.image.set_colorkey(pygame.Color(72,72,88))
         #self.image.set_colorkey(self.rgb)
         self.rect= self.position
@@ -45,13 +53,12 @@ class Protoss(UnitBase):
 class Zealot(Protoss):
     """Zealot class"""
         
-    #__SpriteList는 모든 객체가 공통으로 가지는 이미지 리소스이므로 class 변수(C++에서는 static에 해당)로 정의함
-        
-    SpriteList= UnitSprite('protoss_a.png' , Global.gScreen.get_rect().center)
-
+    #__SpriteList는 모든 객체가 공통으로 가지는 이미지 리소스이므로 class 변수(C++에서는 static에 해당)로 정의함    
     def __init__(self):             
-        self.SpriteList= UnitSprite('protoss_a.png' , Global.gScreen.get_rect().center)
-        return super().__init__('Zealot')
+        RsrcExtractor=ResourceExtractor()
+        RsrcInfoList= RsrcExtractor.GetSpriteInfoList('protoss_c.txt')
+        self.SpriteList= UnitSprite('protoss_c.png' , RsrcExtractor.GetSpriteInfo('zealot'))
+        return super().__init__('zealot')
 
     def draw(self):
         print('I am {0} class'.format(self.name))
@@ -91,14 +98,18 @@ class ResourceExtractor:
                 unitname= self.GetUnitName(linestrlist[0])
                 templist=list()
                 templist.append(unitname)
+                templist.append(pygame.Rect(int(linestrlist[-4]), int(linestrlist[-3]), int(linestrlist[-2]), int(linestrlist[-1])))
+
+        self.entirelist.append(templist)
 
         return self.entirelist
 
     def GetSpriteInfo(self, unitname):
         for ll in self.entirelist:
             #if(ll[0].find(unitname)):
-            if(ll[0].find(unitname)):
+            if(ll[0] == unitname):
                 return ll
+        raise RuntimeError('BeanzSoft : Can\'t find Sprite info with name')
         
     
     def PrintList(self):
