@@ -53,6 +53,8 @@ class Protoss(UnitBase):
 
 class Zealot(Protoss):
     """Zealot class"""
+
+    MoveSpriteList= Global.gRsrcExtractor.GetSpriteInfo('zealot')[1:70:17]
     
     #__SpriteList는 모든 객체가 공통으로 가지는 이미지 리소스이므로 class 변수(C++에서는 static에 해당)로 정의함    
     def __init__(self):
@@ -73,6 +75,9 @@ class Zealot(Protoss):
         print('I am {0} class'.format(self.name))
 
     def Move(self, targetXY, targetOb):
+        #17,34, 51, 68
+        #
+        self.SpriteList.spriteinfoList = self.MoveSpriteList
         print('Move cmd received')
 
     def Attack(self,targetXY, targetOb):
