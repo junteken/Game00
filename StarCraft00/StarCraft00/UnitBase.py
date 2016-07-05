@@ -1,18 +1,25 @@
-import Global, pygame, math
+import Global, pygame
 
 class UnitSprite(pygame.sprite.Sprite):    
-    def __init__(self,image,position):
+    def __init__(self,image,spriteinfo):
         pygame.sprite.Sprite.__init__(self)
+        self.spriteinfoList= spriteinfo
+        self.spritename=spriteinfo[0]
+        self.currentFrame=1 #list의 1번부터 Rect객체이므로
         self.src_image=pygame.image.load(image)
+        self.image= self.src_image.subsurface(spriteinfo[self.currentFrame]).convert()
+        self.position= Global.gScreen.get_rect().center
         #self.src_image.set_colorkey(pygame.Color(72,72,88,0))
         #self.rgb=self.src_image.get_at((0,0))
         #self.position=position
         
 
     def update(self,deltat):
-        # SIMULATION
-        print("Update is called")
-        self.image= self.src_image.subsurface(pygame.Rect(0,320,128,128)).convert()
+        # SIMULATION        
+        self.currentFrame+=1
+        if(self.currentFrame >= len(self.spriteinfoList) ):
+            self.currentFrame=1
+        self.image= self.src_image.subsurface(self.spriteinfoList[self.currentFrame]).convert()
         self.image.set_colorkey(pygame.Color(72,72,88))
         #self.image.set_colorkey(self.rgb)
         self.rect= self.position
@@ -25,11 +32,13 @@ class UnitBase(object):
     def __init__(self, arg_name):
         #nonlocal __name,__SpriteList
         self.name=arg_name
+        self.state= Global.gCmdListInt[0] #생성시 Idle state로 setting
+        self.stateObject= [IdleState(), SelectState(), MoveState(), AttackState()]
         return super().__init__()
 
     def draw(self):
         raise NotImplementedError("UnitBase class must not be instantiated!!!")
-
+    
 
 class Protoss(UnitBase):
     """Protoss class"""
@@ -44,65 +53,73 @@ class Protoss(UnitBase):
 
 class Zealot(Protoss):
     """Zealot class"""
-        
-    #__SpriteList는 모든 객체가 공통으로 가지는 이미지 리소스이므로 class 변수(C++에서는 static에 해당)로 정의함
-        
-    SpriteList= UnitSprite('protoss_a.png' , Global.gScreen.get_rect().center)
 
-    def __init__(self):             
-        self.SpriteList= UnitSprite('protoss_a.png' , Global.gScreen.get_rect().center)
-        return super().__init__('Zealot')
+    MoveSpriteList= Global.gRsrcExtractor.GetSpriteInfo('zealot')[1:70:17]
+    
+    #__SpriteList는 모든 객체가 공통으로 가지는 이미지 리소스이므로 class 변수(C++에서는 static에 해당)로 정의함    
+    def __init__(self):
+        self.name= 'zealot'        
+        #해당 unit의 전체 sprite list를 가지는 변수
+        self.SpriteList= UnitSprite( Global.gRsrcExtractor.GetUnitPngFileName(self.name), Global.gRsrcExtractor.GetSpriteInfo(self.name))
+        #초기에는 전체 sprite list를 모두 그려주게 된다.
+        self.drawList= self.SpriteList
+        return super().__init__('zealot')
 
     def draw(self):
         print('I am {0} class'.format(self.name))
-        return self.SpriteList
+        self.StatusUpdate()
+        return self.drawList
 
-class ResourceExtractor:
-    """ResourceExtractor class"""    
+    def StatusUpdate(self):
+        #자신의 상태에 맞게 행동을 계속 해야한다.
+        print('I am {0} class'.format(self.name))
 
-    def __init__(self):        
-        self.entirelist=[] #entirelist 구조 : {'unitname', Rect[0], Rect[1], Rect[2], ...Rect[N]}
-        #self.GetSpriteInfoList()
+    def Move(self, targetXY, targetOb):
+        #17,34, 51, 68
+        #
+        self.SpriteList.spriteinfoList = self.MoveSpriteList
+        print('Move cmd received')
 
-    def GetUnitName(self, name):
-        i=0
-        for c in name:
-            if(c.isdigit()):
-                i+=1
-        return name[:len(name)-i]
+    def Attack(self,targetXY, targetOb):
+        print('Attack cmd received')
 
-    def GetSpriteInfoList(self, filename):
-        print('GetSpriteInfoList is called')
-        file= open(filename, 'r');
-        #현재 읽어 들이는 unitname이랑 기존의 unitname을 비교해서 새로운 list item을 생성하기 위해 비교하는 변수
-        unitname=self.GetUnitName(file.readline().split(' ')[0])
-        templist=[]
-        templist.append(unitname)
+    def Select(self,fake_arg1, fake_arg2):
+        print('Select cmd received')
 
-        for line in file:
-            linestrlist=line.split(' ')
-            if(unitname == self.GetUnitName(linestrlist[0])):
-                #기존꺼와 같은 경우 만들어놓은 list에 추가한다.  
-                templist.append(pygame.Rect(int(linestrlist[-4]), int(linestrlist[-3]), int(linestrlist[-2]), int(linestrlist[-1])))
+    def Idle(self,fake_arg1, fake_arg2):
+        print('UnSelect cmd received')
 
-            else:
-                #새로운 unit이 발견됨
-                self.entirelist.append(templist)
-                unitname= self.GetUnitName(linestrlist[0])
-                templist=list()
-                templist.append(unitname)
+    CmdOpList=[Idle, Select, Move, Attack]
 
-        return self.entirelist
+    def HandleCmd(self, Cmd, Unit, targetXY, targetOb):
+        self.stateObject[self.state].handleInput(Cmd, self, targetXY, targetOb)
 
-    def GetSpriteInfo(self, unitname):
-        for ll in self.entirelist:
-            #if(ll[0].find(unitname)):
-            if(ll[0].find(unitname)):
-                return ll
+#gCmdList=['IDLE', 'SELECT', 'MOVE', 'ATTACK']
+class IdleState(object):
+    """UnitState class"""
+    def handleInput(self, Cmd, Unit, targetXY, targetOb):
+        if(Cmd == Global.gCmdList[Global.gCmdListDict['SELECT']]):#idle state는 오직 select state로만 이동 가능하다.
+            Unit.state= Global.gCmdListDict[Cmd]
+            Unit.CmdOpList[Unit.state](Unit, targetXY, targetOb)
+
+
+class SelectState(object):
+    """UnitState class"""
+    def handleInput(self, Cmd, Unit, targetXY, targetOb):        
+        Unit.state= Global.gCmdListDict[Cmd] #select state는 모든 state로 이동 가능
+        Unit.CmdOpList[Unit.state](Unit, targetXY, targetOb)
         
-    
-    def PrintList(self):
-        for ll in self.entirelist:
-            print('unit={0}, RectListSize={1}'.format(ll[0], len(ll)))
 
-    
+class MoveState(object):
+    """UnitState class"""
+    def handleInput(self, Cmd, Unit, targetXY, targetOb):
+        if(Cmd == Global.gCmdList[Global.gCmdListDict['ATTACK']]):#move state는 cmd를 받아서 갈수 있는 state는 오직 ATTACK만 가능
+            Unit.state= Global.gCmdListDict[Cmd]
+            Unit.CmdOpList[Unit.state](Unit, targetXY, targetOb)
+
+class AttackState(object):
+    """UnitState class"""
+    def handleInput(self, Cmd, Unit, targetXY, targetOb):
+        if(Cmd == Global.gCmdList[Global.gCmdListDict['MOVE']]):#attck state는 cmd를 받아서 갈수 있는 state는 오직 MOVE만 가능
+            Unit.state= Global.gCmdListDict[Cmd]
+            Unit.CmdOpList[Unit.state](Unit, targetXY, targetOb)

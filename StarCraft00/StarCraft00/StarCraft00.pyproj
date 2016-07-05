@@ -28,6 +28,9 @@
     <Compile Include="Global.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ResourceExtractor.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="StarCraft00.py" />
     <Compile Include="UnitBase.py">
       <SubType>Code</SubType>
